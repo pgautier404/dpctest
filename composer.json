@@ -1,0 +1,9 @@
+{
+    "name": "petegautier/dpctest",
+    "autoload": {
+        "psr-4": {
+            "Petegautier\\Dpctest\\": "src/"
+        }
+    },
+    "require": {}
+}
