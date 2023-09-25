@@ -3,25 +3,31 @@
 namespace Drupal\dpctest;
 
 use Drupal\Core\Cache\CacheBackendInterface;
-use Momento\Cache\Errors\NotImplementedException;
 use Drupal\Core\Logger\LoggerChannelTrait;
 use Drupal\Core\Site\Settings;
+use Momento\Auth\StringMomentoTokenProvider;
+use Momento\Cache\CacheClient;
+use Momento\Config\Configurations\Laptop;
 
 class DpctestBackend implements CacheBackendInterface {
 
     use LoggerChannelTrait;
 
     protected $bin;
+    protected $client;
 
     public function __construct($bin) {
         $this->getLogger('momento_cache')->debug('Constructing dpctest with bin: ' . $bin);
+        $s = Settings::get('momento_cache');
+        $authToken = $s['auth_token'];
+        $authProvider = new StringMomentoTokenProvider($authToken);
         $this->bin = $bin;
+        $this->client = new CacheClient(Laptop::latest(), $authProvider, 30);
+        $this->getLogger('momento_cache')->debug('Got client: ' . $this->client);
     }
 
     public function get($cid, $allow_invalid = FALSE) {
-//        $this->getLogger('momento_cache')->debug('In GET with random setting: ' . Settings::get('config_sync_directory'));
-        $s = Settings::get('momento_cache');
-        $this->getLogger('momento_cache')->debug('In GET with: ' . $s['auth_token']);
+        $this->getLogger('momento_cache')->debug('In GET');
         return false;
     }
 
@@ -40,7 +46,7 @@ class DpctestBackend implements CacheBackendInterface {
     }
 
     public function delete($cid) {
-        throw new NotImplementedException();
+        throw new Exception('not implemented');
     }
 
     public function deleteMultiple(array $cids) {
@@ -48,27 +54,27 @@ class DpctestBackend implements CacheBackendInterface {
     }
 
     public function deleteAll() {
-        throw new NotImplementedException();
+        throw new \Exception;
     }
 
     public function invalidate($cid) {
-        throw new NotImplementedException();
+        throw new Exception('not implemented');
     }
 
     public function invalidateMultiple(array $cids) {
-        throw new NotImplementedException();
+        throw new Exception('not implemented');
     }
 
     public function invalidateAll() {
-        throw new NotImplementedException();
+        throw new Exception('not implemented');
     }
 
     public function invalidateTags(array $tags) {
-        throw new NotImplementedException();
+        throw new Exception('not implemented');
     }
 
     public function removeBin() {
-        throw new NotImplementedException();
+        throw new Exception('not implemented');
     }
 
     public function garbageCollection() {
