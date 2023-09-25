@@ -5,6 +5,7 @@ namespace Drupal\dpctest;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Momento\Cache\Errors\NotImplementedException;
 use Drupal\Core\Logger\LoggerChannelTrait;
+use Drupal\Core\Site\Settings;
 
 class DpctestBackend implements CacheBackendInterface {
 
@@ -18,17 +19,20 @@ class DpctestBackend implements CacheBackendInterface {
     }
 
     public function get($cid, $allow_invalid = FALSE) {
-        $this->getLogger('momento_cache')->debug('In GET');
+//        $this->getLogger('momento_cache')->debug('In GET with random setting: ' . Settings::get('config_sync_directory'));
+        $s = Settings::get('momento_cache');
+        $this->getLogger('momento_cache')->debug('In GET with: ' . $s['auth_token']);
         return false;
     }
 
     public function getMultiple(&$cids, $allow_invalid = FALSE) {
-        $this->getLogger('momento_cache')->error('In GET_MULTIPLE');
+        $this->getLogger('momento_cache')->debug('In GET_MULTIPLE');
         return [];
     }
 
     public function set($cid, $data, $expire = CacheBackendInterface::CACHE_PERMANENT, array $tags = []) {
-        $this->getLogger('momento_cache')->debug('In SET');
+        $token = Settings::get('momento_cache.auth_token');
+        $this->getLogger('momento_cache')->debug('In SET with: ' . $token);
     }
 
     public function setMultiple(array $items) {
