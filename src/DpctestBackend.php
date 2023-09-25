@@ -23,6 +23,7 @@ class DpctestBackend implements CacheBackendInterface {
     }
 
     public function getMultiple(&$cids, $allow_invalid = FALSE) {
+        $this->getLogger('momento_cache')->error('In GET_MULTIPLE');
         throw new NotImplementedException();
     }
 
