@@ -40,7 +40,7 @@ class DpctestBackend implements CacheBackendInterface {
     }
 
     public function deleteMultiple(array $cids) {
-        throw new NotImplementedException();
+        $this->getLogger('momento_cache')->debug('In DELETE_MULTIPLE');
     }
 
     public function deleteAll() {
