@@ -23,11 +23,21 @@ class DpctestBackend implements CacheBackendInterface {
         $authProvider = new StringMomentoTokenProvider($authToken);
         $this->bin = $bin;
         $this->client = new CacheClient(Laptop::latest(), $authProvider, 30);
-        $this->getLogger('momento_cache')->debug('Got client: ' . $this->client);
+        $this->getLogger('momento_cache')->debug('Got client');
     }
 
     public function get($cid, $allow_invalid = FALSE) {
         $this->getLogger('momento_cache')->debug('In GET');
+        $setResp = $this->client->set("cache", "key", "wooohooo");
+        if (!$setResp->asSuccess()) {
+            throw $setResp->asError()->innerException();
+        }
+        $getResp = $this->client->get("cache", "key");
+        if ($getResp->asHit()) {
+            $this->getLogger('momento_cache')->debug("Get response is: " . $getResp->asHit()->valueString());
+        } else {
+            $this->getLogger('momento_cache')->debug("Unknown get response: " . $getResp);
+        }
         return false;
     }
 
@@ -37,8 +47,7 @@ class DpctestBackend implements CacheBackendInterface {
     }
 
     public function set($cid, $data, $expire = CacheBackendInterface::CACHE_PERMANENT, array $tags = []) {
-        $token = Settings::get('momento_cache.auth_token');
-        $this->getLogger('momento_cache')->debug('In SET with: ' . $token);
+        $this->getLogger('momento_cache')->debug('In SET');
     }
 
     public function setMultiple(array $items) {
