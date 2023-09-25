@@ -11,11 +11,10 @@ class DpctestBackend implements CacheBackendInterface {
     use LoggerChannelTrait;
 
     protected $bin;
-    protected $settings = [];
 
-    public function __construct($bin, $settings) {
+    public function __construct($bin) {
+        $this->getLogger('momento_cache')->debug('Constructing dpctest');
         $this->bin = $bin;
-        $this->settings = $settings;
     }
 
     public function get($cid, $allow_invalid = FALSE) {
