@@ -6,7 +6,7 @@ use Drupal\Core\Cache\CacheBackendInterface;
 use Momento\Cache\Errors\NotImplementedException;
 use Drupal\Core\Logger\LoggerChannelTrait;
 
-class DpctestBackend extends CacheBackendInterface {
+class DpctestBackend implements CacheBackendInterface {
 
     use LoggerChannelTrait;
 

@@ -6,7 +6,7 @@ use Drupal\Core\Cache\CacheFactoryInterface;
 use Drupal\Core\Site\Settings;
 use Drupal\Core\Logger\LoggerChannelTrait;
 
-class DpctestBackendFactory extends CacheFactoryInterface {
+class DpctestBackendFactory implements CacheFactoryInterface {
 
     use LoggerChannelTrait;
 
