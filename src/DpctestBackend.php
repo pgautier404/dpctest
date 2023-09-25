@@ -14,7 +14,7 @@ class DpctestBackend implements CacheBackendInterface {
     protected $bin;
 
     public function __construct($bin) {
-        $this->getLogger('momento_cache')->debug('Constructing dpctest');
+        $this->getLogger('momento_cache')->debug('Constructing dpctest with bin: ' . $bin);
         $this->bin = $bin;
     }
 
