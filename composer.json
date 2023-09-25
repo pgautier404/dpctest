@@ -1,9 +1,10 @@
 {
     "name": "drupal/dpctest",
+    "type": "drupal-module",
     "license": "Apache-2.0",
     "autoload": {
         "psr-4": {
-            "Petegautier\\Dpctest\\": "src/"
+            "Drupal\\dpctest\\": "src/"
         }
     },
     "require": {

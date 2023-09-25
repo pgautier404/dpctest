@@ -1,0 +1,4 @@
+services:
+  cache.backend.dpctest:
+    class: Drupal\dpctest\DpctestBackendFactory
+    arguments: ['@settings']
