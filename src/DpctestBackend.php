@@ -19,12 +19,12 @@ class DpctestBackend implements CacheBackendInterface {
 
     public function get($cid, $allow_invalid = FALSE) {
         $this->getLogger('momento_cache')->debug('In GET');
-        throw new NotImplementedException();
+        return false;
     }
 
     public function getMultiple(&$cids, $allow_invalid = FALSE) {
         $this->getLogger('momento_cache')->error('In GET_MULTIPLE');
-        throw new NotImplementedException();
+        return [];
     }
 
     public function set($cid, $data, $expire = CacheBackendInterface::CACHE_PERMANENT, array $tags = []) {
