@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "66a047050b2b4537de3fbe8fa8153874",
+    "content-hash": "e4a9be80724a42286882fba7c4a5485e",
     "packages": [
         {
             "name": "firebase/php-jwt",
@@ -159,16 +159,16 @@
         },
         {
             "name": "momentohq/client-sdk-php",
-            "version": "v1.3.0",
+            "version": "dev-drupal-psr-log-version",
             "source": {
                 "type": "git",
                 "url": "https://github.com/momentohq/client-sdk-php.git",
-                "reference": "045b2e61766e1f690ef9aa23aa8f78fcc8d6829b"
+                "reference": "38697eabd580add55fe2f31319ff7ff019e96f8c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/momentohq/client-sdk-php/zipball/045b2e61766e1f690ef9aa23aa8f78fcc8d6829b",
-                "reference": "045b2e61766e1f690ef9aa23aa8f78fcc8d6829b",
+                "url": "https://api.github.com/repos/momentohq/client-sdk-php/zipball/38697eabd580add55fe2f31319ff7ff019e96f8c",
+                "reference": "38697eabd580add55fe2f31319ff7ff019e96f8c",
                 "shasum": ""
             },
             "require": {
@@ -177,7 +177,7 @@
                 "google/protobuf": "3.22.3",
                 "grpc/grpc": "1.52.0",
                 "php": ">=8.0",
-                "psr/log": "^2.0 || ^3.0",
+                "psr/log": "^1.1 || ^2.0 || ^3.0",
                 "psr/simple-cache": "^3.0"
             },
             "require-dev": {
@@ -225,7 +225,7 @@
                 "issues": "https://github.com/momentohq/client-sdk-php/issues",
                 "source": "https://github.com/momentohq/client-sdk-php"
             },
-            "time": "2023-06-06T20:58:16+00:00"
+            "time": "2023-09-25T21:09:09+00:00"
         },
         {
             "name": "psr/log",
@@ -332,7 +332,9 @@
     "packages-dev": [],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": [],
+    "stability-flags": {
+        "momentohq/client-sdk-php": 20
+    },
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": [],
