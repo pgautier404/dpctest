@@ -32,7 +32,7 @@ class DpctestBackend implements CacheBackendInterface {
     }
 
     public function setMultiple(array $items) {
-        throw new NotImplementedException();
+        $this->getLogger('momento_cache')->debug('In SET_MULTIPLE');
     }
 
     public function delete($cid) {
