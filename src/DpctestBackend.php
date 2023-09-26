@@ -17,22 +17,28 @@ class DpctestBackend implements CacheBackendInterface {
     protected $client;
 
     public function __construct($bin) {
-        $this->getLogger('momento_cache')->debug('Constructing dpctest with bin: ' . $bin);
-        $s = Settings::get('momento_cache');
-        $authToken = $s['auth_token'];
+        $this->getLogger('momento_cache')->notice('Constructing dpctest with bin: ' . $bin);
+        $settings = Settings::get('momento_cache');
+        $authToken = $settings['auth_token'];
         $authProvider = new StringMomentoTokenProvider($authToken);
         $this->bin = $bin;
         $this->client = new CacheClient(Laptop::latest(), $authProvider, 30);
-        $this->getLogger('momento_cache')->debug('Got client');
+        $this->getLogger('momento_cache')->notice('Got client');
+        $createResponse = $this->client->createCache($bin);
+        if ($createResponse->asError()) {
+            throw $createResponse->asError()->innerException();
+        } elseif ($createResponse->asSuccess()) {
+            $this->getLogger('momento_cache')->notice('Created cache: ' . $bin);
+        }
     }
 
     public function get($cid, $allow_invalid = FALSE) {
         $this->getLogger('momento_cache')->debug('In GET');
-        $setResp = $this->client->set("cache", "key", "wooohooo");
-        if (!$setResp->asSuccess()) {
-            throw $setResp->asError()->innerException();
-        }
-        $getResp = $this->client->get("cache", "key");
+
+        // TODO: pass off to getMultiple
+        // $cids = [$cid];
+
+        $getResp = $this->client->get($this->bin, $cid);
         if ($getResp->asHit()) {
             $this->getLogger('momento_cache')->debug("Get response is: " . $getResp->asHit()->valueString());
         } else {
@@ -55,34 +61,41 @@ class DpctestBackend implements CacheBackendInterface {
     }
 
     public function delete($cid) {
-        throw new \Exception('not implemented');
+        $this->getLogger('momento_cache')->debug('In DELETE');
     }
 
     public function deleteMultiple(array $cids) {
         $this->getLogger('momento_cache')->debug('In DELETE_MULTIPLE');
+        throw new \Exception('not implemented');
     }
 
     public function deleteAll() {
+        $this->getLogger('momento_cache')->debug('In DELETE_ALL');
         throw new \Exception('not implemented');
     }
 
     public function invalidate($cid) {
+        $this->getLogger('momento_cache')->debug('In INVALIDATE');
         throw new \Exception('not implemented');
     }
 
     public function invalidateMultiple(array $cids) {
+        $this->getLogger('momento_cache')->debug('In INVALIDATE_MULTIPLE');
         throw new \Exception('not implemented');
     }
 
     public function invalidateAll() {
+        $this->getLogger('momento_cache')->debug('In INVALIDATE_ALL');
         throw new \Exception('not implemented');
     }
 
     public function invalidateTags(array $tags) {
+        $this->getLogger('momento_cache')->debug('In INVALIDATE_TAGS');
         throw new \Exception('not implemented');
     }
 
     public function removeBin() {
+        $this->getLogger('momento_cache')->debug('In REMOVE_BIN');
         throw new \Exception('not implemented');
     }
 
