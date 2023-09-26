@@ -20,14 +20,10 @@ class DpctestBackend implements CacheBackendInterface, CacheTagsInvalidatorInter
     protected $client;
     private $MAX_TTL;
 
-    public function __construct($bin) {
-        $this->getLogger('momento_cache')->info("Constructing dpctest with bin: $bin");
+    public function __construct($bin, $client) {
         $this->MAX_TTL = intdiv(PHP_INT_MAX, 1000);
-        $settings = Settings::get('momento_cache');
-        $authToken = $settings['auth_token'];
-        $authProvider = new StringMomentoTokenProvider($authToken);
+        $this->client = $client;
         $this->bin = $bin;
-        $this->client = new CacheClient(Laptop::latest(), $authProvider, 30);
         $createResponse = $this->client->createCache($bin);
         if ($createResponse->asError()) {
             $this->getLogger('momento_cache')->error(
@@ -39,59 +35,57 @@ class DpctestBackend implements CacheBackendInterface, CacheTagsInvalidatorInter
     }
 
     public function get($cid, $allow_invalid = FALSE) {
-        $this->getLogger('momento_cache')->debug('In GET with bin: ' . $this->bin);
+        $this->getLogger('momento_cache')->debug("GET with bin " . $this->bin . ", cid " . $cid);
         $cids = [$cid];
         $recs = $this->getMultiple($cids);
         return reset($recs);
     }
 
     public function getMultiple(&$cids, $allow_invalid = FALSE) {
-        $this->getLogger('momento_cache')->debug('In GET_MULTIPLE for bin: ' . $this->bin);
+        $this->getLogger('momento_cache')->debug(
+            "GET_MULTIPLE for bin " . $this->bin . ", cids: " . implode(', ', $cids)
+        );
         $fetched = [];
 
         foreach ($cids as $cid) {
             $getResponse = $this->client->get($this->bin, $cid);
             if ($getResponse->asHit()) {
                 $fetched[$cid] = unserialize($getResponse->asHit()->valueString());
-                $this->getLogger('momento_cache')->debug(
-                    "Get response (JSON encoded) for cid: $cid is: " . json_encode($fetched[$cid])
-                );
+                $this->getLogger('momento_cache')->debug("Successful GET for cid $cid");
             } elseif ($getResponse->asError()) {
-                $this->getLogger('momento_cache')->error("GET response error: " . $getResponse->asError()->message());
+                $this->getLogger('momento_cache')->error("GET error for cid $cid: " . $getResponse->asError()->message());
             }
         }
         return $fetched;
     }
 
     public function set($cid, $data, $expire = CacheBackendInterface::CACHE_PERMANENT, array $tags = []) {
-        $this->getLogger('momento_cache')->debug(
-            'In SET with bin: ' . $this->bin . ', data: ' . json_encode($data)
-        );
+        $ttl = $this->MAX_TTL;
         $item = new \stdClass();
         $item->cid = $cid;
         $item->data = $data;
         $item->created = round(microtime(TRUE), 3);
-
-        $ttl = $this->MAX_TTL;
         if ($expire != CacheBackendInterface::CACHE_PERMANENT) {
             $ttl = $expire - \Drupal::time()->getRequestTime();
         }
         $item->expire = $expire;
         $item->tags = $tags;
+        $this->getLogger('momento_cache')->debug("SET cid $cid in bin " . $this->bin . " with ttl $ttl");
         $setResponse = $this->client->set($this->bin, $cid, serialize($item), $ttl);
         if ($setResponse->asError()) {
             $this->getLogger('momento_cache')->error("SET response error: " . $setResponse->asError()->message());
         }
         foreach ($tags as $tag) {
+            // TODO: either prefix or hash set name so we don't accidentally overwrite keys if there is ever a collision
             $setAddElementResponse = $this->client->setAddElement($this->bin, $tag, $cid, CollectionTtl::of($this->MAX_TTL));
             if ($setAddElementResponse->asError()) {
-                $this->getLogger('momento_cache')->error("Error adding TAG $tag: " . $setAddElementResponse->asError()->message());
+                $this->getLogger('momento_cache')->error("TAG add error $tag: " . $setAddElementResponse->asError()->message());
             }
         }
     }
 
     public function setMultiple(array $items) {
-        $this->getLogger('momento_cache')->debug('In SET_MULTIPLE');
+        $this->getLogger('momento_cache')->debug('SET_MULTIPLE in bin ' . $this->bin . ' for ' . count($items) . ' items');
         foreach ($items as $cid => $item) {
             $this->set(
                 $cid,
