@@ -27,7 +27,9 @@ class DpctestBackend implements CacheBackendInterface {
         $this->getLogger('momento_cache')->notice('Got client');
         $createResponse = $this->client->createCache($bin);
         if ($createResponse->asError()) {
-            throw $createResponse->asError()->innerException();
+            $this->getLogger('momento_cache')->error(
+                'Error creating cache ' . $bin . ': ' . $createResponse->asError()->message()
+            );
         } elseif ($createResponse->asSuccess()) {
             $this->getLogger('momento_cache')->notice('Created cache: ' . $bin);
         }
