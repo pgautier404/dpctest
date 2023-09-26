@@ -139,8 +139,8 @@ class DpctestBackend implements CacheBackendInterface, CacheTagsInvalidatorInter
     }
 
     public function invalidateTags(array $tags) {
-        $this->getLogger('momento_cache')->debug('In INVALIDATE_TAGS');
-        throw new \Exception('not implemented');
+        $this->getLogger('momento_cache')->critical('In INVALIDATE_TAGS with tags: ' . implode(', ', $tags));
+        throw new \Exception('INVALIDATE_TAGS is not implemented: ' . implode(', ', $tags));
     }
 
     public function removeBin() {
