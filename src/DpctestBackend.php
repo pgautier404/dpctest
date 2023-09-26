@@ -54,7 +54,7 @@ class DpctestBackend implements CacheBackendInterface, CacheTagsInvalidatorInter
                     "Get response (JSON encoded) for cid: $cid is: " . json_encode($fetched[$cid])
                 );
             } elseif ($getResponse->asError()) {
-                $this->getLogger('momento_cache')->error("Get response error: " . $getResponse->asError()->message());
+                $this->getLogger('momento_cache')->error("GET response error: " . $getResponse->asError()->message());
             }
         }
         return $fetched;
@@ -73,10 +73,12 @@ class DpctestBackend implements CacheBackendInterface, CacheTagsInvalidatorInter
         if ($expire != CacheBackendInterface::CACHE_PERMANENT) {
             $ttl = $expire - \Drupal::time()->getRequestTime();
         }
-        $this->getLogger('momento_cache')->debug("SET TTL: $ttl");
         $item->expire = $expire;
         $item->tags = $tags;
         $setResponse = $this->client->set($this->bin, $cid, serialize($item));
+        if ($setResponse->asError()) {
+            $this->getLogger('momento_cache')->error("SET response error: " . $setResponse->asError()->message());
+        }
     }
 
     public function setMultiple(array $items) {
@@ -123,17 +125,17 @@ class DpctestBackend implements CacheBackendInterface, CacheTagsInvalidatorInter
 
     public function invalidate($cid) {
         $this->getLogger('momento_cache')->debug('In INVALIDATE');
-        throw new \Exception('not implemented');
+        $this->delete($cid);
     }
 
     public function invalidateMultiple(array $cids) {
         $this->getLogger('momento_cache')->debug('In INVALIDATE_MULTIPLE');
-        throw new \Exception('not implemented');
+        $this->deleteMultiple($cids);
     }
 
     public function invalidateAll() {
         $this->getLogger('momento_cache')->debug('In INVALIDATE_ALL');
-        throw new \Exception('not implemented');
+        $this->deleteAll();
     }
 
     public function invalidateTags(array $tags) {
@@ -143,7 +145,10 @@ class DpctestBackend implements CacheBackendInterface, CacheTagsInvalidatorInter
 
     public function removeBin() {
         $this->getLogger('momento_cache')->debug('In REMOVE_BIN');
-        throw new \Exception('not implemented');
+        $deleteResponse = $this->client->deleteCache($this->bin);
+        if ($deleteResponse->asError()) {
+            $this->getLogger('momento_cache')->error("DELETE_CACHE response error: " . $deleteResponse->asError()->message());
+        }
     }
 
     public function garbageCollection() {
