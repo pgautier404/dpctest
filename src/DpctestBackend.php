@@ -54,6 +54,7 @@ class DpctestBackend implements CacheBackendInterface {
 
     public function set($cid, $data, $expire = CacheBackendInterface::CACHE_PERMANENT, array $tags = []) {
         $this->getLogger('momento_cache')->debug('In SET with tags: ' . implode(", ", $tags));
+        $this->getLogger('momento_cache')->debug('In SET with data: ' . $data);
     }
 
     public function setMultiple(array $items) {
