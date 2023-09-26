@@ -5,6 +5,7 @@ namespace Drupal\dpctest;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Logger\LoggerChannelTrait;
 use Drupal\Core\Site\Settings;
+use Drupal\Component\Serialization\SerializationInterface;
 use Momento\Auth\StringMomentoTokenProvider;
 use Momento\Cache\CacheClient;
 use Momento\Config\Configurations\Laptop;
@@ -54,7 +55,8 @@ class DpctestBackend implements CacheBackendInterface {
 
     public function set($cid, $data, $expire = CacheBackendInterface::CACHE_PERMANENT, array $tags = []) {
         $this->getLogger('momento_cache')->debug('In SET with tags: ' . implode(", ", $tags));
-        $this->getLogger('momento_cache')->debug('In SET with data: ' . $data);
+        $this->getLogger('momento_cache')->debug('In SET with data: ' . json_encode($data));
+        $this->getLogger('momento_cache')->debug('In SET with serialized data: ' . serialize($data));
     }
 
     public function setMultiple(array $items) {

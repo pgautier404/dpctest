@@ -4,21 +4,14 @@ namespace Drupal\dpctest;
 
 use Drupal\Core\Cache\CacheFactoryInterface;
 use Drupal\Core\Logger\LoggerChannelTrait;
-//use Drupal\Core\Site\Settings;
 
 class DpctestBackendFactory implements CacheFactoryInterface {
 
     use LoggerChannelTrait;
 
-//    protected $settings = [];
-
-//    public function __construct(Settings $settings)
+//    public function __construct($settings)
 //    {
-//        $this->getLogger('momento_cache')->debug(
-//          'Got settings: @settings',
-//          ['@settings' => $settings]
-//        );
-//        $this->settings = $settings;
+//
 //    }
 
     public function get($bin)
