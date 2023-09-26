@@ -34,33 +34,61 @@ class DpctestBackend implements CacheBackendInterface {
     }
 
     public function get($cid, $allow_invalid = FALSE) {
-        $this->getLogger('momento_cache')->debug('In GET');
+        $this->getLogger('momento_cache')->debug('In GET with bin: ' . $this->bin);
 
         // TODO: pass off to getMultiple
-        // $cids = [$cid];
-
-        $getResp = $this->client->get($this->bin, $cid);
-        if ($getResp->asHit()) {
-            $this->getLogger('momento_cache')->debug("Get response is: " . $getResp->asHit()->valueString());
-        } else {
-            $this->getLogger('momento_cache')->debug("Unknown get response: " . $getResp);
-        }
-        return false;
+        $cids = [$cid];
+        $recs = $this->getMultiple($cids);
+        return reset($recs);
     }
 
     public function getMultiple(&$cids, $allow_invalid = FALSE) {
-        $this->getLogger('momento_cache')->debug('In GET_MULTIPLE');
-        return [];
+        $this->getLogger('momento_cache')->debug('In GET_MULTIPLE for bin: ' . $this->bin);
+        $fetched = [];
+
+        foreach ($cids as $cid) {
+            $getResponse = $this->client->get($this->bin, $cid);
+            if ($getResponse->asHit()) {
+                $fetched[$cid] = unserialize($getResponse->asHit()->valueString());
+                $this->getLogger('momento_cache')->debug(
+                    "Get response (JSON encoded) for cid: " . $cid . " is: " . json_encode($fetched[$cid])
+                );
+            } elseif ($getResponse->asError()) {
+                $this->getLogger('momento_cache')->debug("Get response error: " . $getResponse->asError()->message());
+            }
+        }
+        return $fetched;
     }
 
     public function set($cid, $data, $expire = CacheBackendInterface::CACHE_PERMANENT, array $tags = []) {
-        $this->getLogger('momento_cache')->debug('In SET with tags: ' . implode(", ", $tags));
-        $this->getLogger('momento_cache')->debug('In SET with data: ' . json_encode($data));
-        $this->getLogger('momento_cache')->debug('In SET with serialized data: ' . serialize($data));
+        $this->getLogger('momento_cache')->debug(
+            'In SET with bin: ' . $this->bin . ', data: ' . json_encode($data)
+        );
+        $item = new \stdClass();
+        $item->cid = $cid;
+        $item->data = $data;
+        $item->created = round(microtime(TRUE), 3);
+
+        $ttl = intdiv(PHP_INT_MAX, 1000);
+        if ($expire != CacheBackendInterface::CACHE_PERMANENT) {
+            $ttl = $expire - \Drupal::time()->getRequestTime();
+        }
+        $this->getLogger('momento_cache')->debug('SET TTL: ' . $ttl);
+        $item->expire = $expire;
+        $item->tags = $tags;
+        $setResponse = $this->client->set($this->bin, $cid, serialize($item));
     }
 
     public function setMultiple(array $items) {
         $this->getLogger('momento_cache')->debug('In SET_MULTIPLE');
+        foreach ($items as $cid => $item) {
+            $this->set(
+                $cid,
+                $item['data'],
+                $item['expire'] ?? CacheBackendInterface::CACHE_PERMANENT,
+                $item['tags'] ?? []
+            );
+        }
     }
 
     public function delete($cid) {

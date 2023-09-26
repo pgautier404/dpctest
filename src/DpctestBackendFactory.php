@@ -9,11 +9,6 @@ class DpctestBackendFactory implements CacheFactoryInterface {
 
     use LoggerChannelTrait;
 
-//    public function __construct($settings)
-//    {
-//
-//    }
-
     public function get($bin)
     {
         $this->getLogger('momento_cache')->debug("hi from the factory floor!");
