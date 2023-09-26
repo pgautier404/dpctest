@@ -55,7 +55,7 @@ class DpctestBackend implements CacheBackendInterface {
     }
 
     public function delete($cid) {
-        throw new Exception('not implemented');
+        throw new \Exception('not implemented');
     }
 
     public function deleteMultiple(array $cids) {
@@ -63,27 +63,27 @@ class DpctestBackend implements CacheBackendInterface {
     }
 
     public function deleteAll() {
-        throw new \Exception;
+        throw new \Exception('not implemented');
     }
 
     public function invalidate($cid) {
-        throw new Exception('not implemented');
+        throw new \Exception('not implemented');
     }
 
     public function invalidateMultiple(array $cids) {
-        throw new Exception('not implemented');
+        throw new \Exception('not implemented');
     }
 
     public function invalidateAll() {
-        throw new Exception('not implemented');
+        throw new \Exception('not implemented');
     }
 
     public function invalidateTags(array $tags) {
-        throw new Exception('not implemented');
+        throw new \Exception('not implemented');
     }
 
     public function removeBin() {
-        throw new Exception('not implemented');
+        throw new \Exception('not implemented');
     }
 
     public function garbageCollection() {
