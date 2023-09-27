@@ -35,7 +35,7 @@ class DpctestBackend implements CacheBackendInterface, CacheTagsInvalidatorInter
     }
 
     public function get($cid, $allow_invalid = FALSE) {
-        $this->getLogger('momento_cache')->debug("GET with bin " . $this->bin . ", cid " . $cid);
+        $this->getLogger('momento_cache')->debug("GET with bin $this->bin, cid " . $cid);
         $cids = [$cid];
         $recs = $this->getMultiple($cids);
         return reset($recs);
@@ -43,7 +43,7 @@ class DpctestBackend implements CacheBackendInterface, CacheTagsInvalidatorInter
 
     public function getMultiple(&$cids, $allow_invalid = FALSE) {
         $this->getLogger('momento_cache')->debug(
-            "GET_MULTIPLE for bin " . $this->bin . ", cids: " . implode(', ', $cids)
+            "GET_MULTIPLE for bin $this->bin, cids: " . implode(', ', $cids)
         );
         $fetched = [];
 
@@ -70,7 +70,7 @@ class DpctestBackend implements CacheBackendInterface, CacheTagsInvalidatorInter
         }
         $item->expire = $expire;
         $item->tags = $tags;
-        $this->getLogger('momento_cache')->debug("SET cid $cid in bin " . $this->bin . " with ttl $ttl");
+        $this->getLogger('momento_cache')->debug("SET cid $cid in bin $this->bin with ttl $ttl");
         $setResponse = $this->client->set($this->bin, $cid, serialize($item), $ttl);
         if ($setResponse->asError()) {
             $this->getLogger('momento_cache')->error("SET response error: " . $setResponse->asError()->message());
@@ -85,7 +85,7 @@ class DpctestBackend implements CacheBackendInterface, CacheTagsInvalidatorInter
     }
 
     public function setMultiple(array $items) {
-        $this->getLogger('momento_cache')->debug('SET_MULTIPLE in bin ' . $this->bin . ' for ' . count($items) . ' items');
+        $this->getLogger('momento_cache')->debug("SET_MULTIPLE in bin $this->bin for " . count($items) . " items");
         foreach ($items as $cid => $item) {
             $this->set(
                 $cid,
@@ -97,23 +97,26 @@ class DpctestBackend implements CacheBackendInterface, CacheTagsInvalidatorInter
     }
 
     public function delete($cid) {
+        $this->getLogger('momento_cache')->debug("DELETE cid $cid");
         $deleteResponse = $this->client->delete($this->bin, $cid);
         if ($deleteResponse->asError()) {
             $this->getLogger('momento_cache')->error("DELETE response error: " . $deleteResponse->asError()->message());
         } else {
-            $this->getLogger('momento_cache')->error("DELETED $cid");
+            $this->getLogger('momento_cache')->debug("DELETED $cid");
         }
     }
 
     public function deleteMultiple(array $cids) {
-        $this->getLogger('momento_cache')->debug('In DELETE_MULTIPLE');
+        $this->getLogger('momento_cache')->debug(
+            "DELETE_MULTIPLE in bin $this->bin for cids: " . implode(', ', $cids)
+        );
         foreach ($cids as $cid) {
             $this->delete($cid);
         }
     }
 
     public function deleteAll() {
-        $this->getLogger('momento_cache')->debug('In DELETE_ALL');
+        $this->getLogger('momento_cache')->debug("DELETE_ALL in bin $this->bin");
         // TODO: we don't have flushCache in the PHP SDK yet
         $deleteResponse = $this->client->deleteCache($this->bin);
         if ($deleteResponse->asError()) {
@@ -127,7 +130,7 @@ class DpctestBackend implements CacheBackendInterface, CacheTagsInvalidatorInter
     }
 
     public function invalidate($cid) {
-        $this->getLogger('momento_cache')->debug('In INVALIDATE');
+        $this->getLogger('momento_cache')->debug("INVALIDATE cid $cid for bin $this->bin");
         $this->delete($cid);
     }
 
@@ -142,22 +145,22 @@ class DpctestBackend implements CacheBackendInterface, CacheTagsInvalidatorInter
     }
 
     public function invalidateTags(array $tags) {
-        $this->getLogger('momento_cache')->error('In INVALIDATE_TAGS with tags: ' . implode(', ', $tags));
+        $this->getLogger('momento_cache')->debug("INVALIDATE_TAGS with tags: " . implode(', ', $tags));
         foreach ($tags as $tag) {
-            $this->getLogger('momento_cache')->error("Considering tag '$tag' in bin " . $this->bin);
+            $this->getLogger('momento_cache')->debug("Processing tag '$tag' in bin $this->bin");
             $setFetchResponse = $this->client->setFetch($this->bin, $tag);
             if ($setFetchResponse->asError()) {
                 $this->getLogger('momento_cache')->error(
-                    "Error fetching TAG $tag from bin " . $this->bin . ": " . $setFetchResponse->asError()->message()
+                    "Error fetching TAG $tag from bin $this->bin: " . $setFetchResponse->asError()->message()
                 );
             } elseif ($setFetchResponse->asHit()) {
                 $cids = $setFetchResponse->asHit()->valuesArray();
-                $this->getLogger('momento_cache')->error(
-                    "Deleting $tag from bin " . $this->bin . ": " . implode(', ', $cids)
+                $this->getLogger('momento_cache')->debug(
+                    "Deleting $tag from bin $this->bin: " . implode(', ', $cids)
                 );
                 $this->deleteMultiple($cids);
             } elseif ($setFetchResponse->asMiss()) {
-                $this->getLogger('momento_cache')->error("No cids found for tag $tag in bin " . $this->bin);
+                $this->getLogger('momento_cache')->debug("No cids found for tag $tag in bin $this->bin");
             }
         }
     }
