@@ -67,6 +67,10 @@ class DpctestBackend implements CacheBackendInterface, CacheTagsInvalidatorInter
         return $fetched;
     }
 
+    private function getTagSetName($tag) {
+        return "_tagSet:$tag";
+    }
+
     public function set($cid, $data, $expire = CacheBackendInterface::CACHE_PERMANENT, array $tags = []) {
         $ttl = $this->MAX_TTL;
         $item = new \stdClass();
@@ -78,14 +82,16 @@ class DpctestBackend implements CacheBackendInterface, CacheTagsInvalidatorInter
         }
         $item->expire = $expire;
         $item->tags = $tags;
+
         $this->getLogger('momento_cache')->debug("SET cid $cid in bin $this->bin with ttl $ttl");
         $setResponse = $this->client->set($this->bin, $cid, serialize($item), $ttl);
         if ($setResponse->asError()) {
             $this->getLogger('momento_cache')->error("SET response error: " . $setResponse->asError()->message());
         }
         foreach ($tags as $tag) {
+            $tagSetName = $this->getTagSetName($tag);
             // TODO: either prefix or hash set name so we don't accidentally overwrite keys if there is ever a collision
-            $setAddElementResponse = $this->client->setAddElement($this->bin, $tag, $cid, CollectionTtl::of($this->MAX_TTL));
+            $setAddElementResponse = $this->client->setAddElement($this->bin, $tagSetName, $cid, CollectionTtl::of($this->MAX_TTL));
             if ($setAddElementResponse->asError()) {
                 $this->getLogger('momento_cache')->error("TAG add error $tag: " . $setAddElementResponse->asError()->message());
             }
@@ -94,6 +100,7 @@ class DpctestBackend implements CacheBackendInterface, CacheTagsInvalidatorInter
 
     public function setMultiple(array $items) {
         $this->getLogger('momento_cache')->debug("SET_MULTIPLE in bin $this->bin for " . count($items) . " items");
+
         foreach ($items as $cid => $item) {
             $this->set(
                 $cid,
@@ -105,6 +112,7 @@ class DpctestBackend implements CacheBackendInterface, CacheTagsInvalidatorInter
     }
 
     public function delete($cid) {
+        // TODO: remove this cid from tags sets? would require fetching the item and accessing the tags.
         $this->getLogger('momento_cache')->debug("DELETE cid $cid");
         $deleteResponse = $this->client->delete($this->bin, $cid);
         if ($deleteResponse->asError()) {
@@ -155,8 +163,9 @@ class DpctestBackend implements CacheBackendInterface, CacheTagsInvalidatorInter
     public function invalidateTags(array $tags) {
         $this->getLogger('momento_cache')->debug("INVALIDATE_TAGS with tags: " . implode(', ', $tags));
         foreach ($tags as $tag) {
+            $tagSetName = $this->getTagSetName($tag);
             $this->getLogger('momento_cache')->debug("Processing tag '$tag' in bin $this->bin");
-            $setFetchResponse = $this->client->setFetch($this->bin, $tag);
+            $setFetchResponse = $this->client->setFetch($this->bin, $tagSetName);
             if ($setFetchResponse->asError()) {
                 $this->getLogger('momento_cache')->error(
                     "Error fetching TAG $tag from bin $this->bin: " . $setFetchResponse->asError()->message()
