@@ -19,7 +19,6 @@ class DpctestBackendFactory implements CacheFactoryInterface {
     private $cacheListTimespamp;
 
     private function populateCacheList($bin) {
-        $this->getLogger('momento_cache_init')->debug("Listing caches at " . time() . " for bin $bin");
         $this->cacheListTimespamp = time();
         $listResponse = $this->client->listCaches();
         if ($listResponse->asSuccess()) {
@@ -32,13 +31,10 @@ class DpctestBackendFactory implements CacheFactoryInterface {
     public function get($bin)
     {
         if (!$this->client) {
-            $this->getLogger('momento_cache_init')->info("Constructing client for $bin at " . time());
             $settings = Settings::get('momento_cache');
             $authToken = $settings['auth_token'];
             $authProvider = new StringMomentoTokenProvider($authToken);
             $this->client = new CacheClient(Laptop::latest(), $authProvider, 30);
-        } else {
-            $this->getLogger('momento_cache_init')->debug("Reusing client for $bin at " . time());
         }
 
         if (

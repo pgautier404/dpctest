@@ -7,9 +7,6 @@ use Drupal\Core\Logger\LoggerChannelTrait;
 use Drupal\Core\Site\Settings;
 use Drupal\Component\Serialization\SerializationInterface;
 use Drupal\Core\Cache\CacheTagsInvalidatorInterface;
-use Momento\Auth\StringMomentoTokenProvider;
-use Momento\Cache\CacheClient;
-use Momento\Config\Configurations\Laptop;
 use Momento\Requests\CollectionTtl;
 
 class DpctestBackend implements CacheBackendInterface, CacheTagsInvalidatorInterface {
@@ -28,16 +25,12 @@ class DpctestBackend implements CacheBackendInterface, CacheTagsInvalidatorInter
         if ($createCache) {
             $createResponse = $this->client->createCache($bin);
             if ($createResponse->asError()) {
-                $this->getLogger('momento_cache_init')->error(
+                $this->getLogger('momento_cache')->error(
                     "Error creating cache $bin : " . $createResponse->asError()->message()
                 );
             } elseif ($createResponse->asSuccess()) {
-                $this->getLogger('momento_cache_init')->info("Created cache $bin");
-            } elseif ($createResponse->asAlreadyExists()) {
-                $this->getLogger('momento_cache_init')->info("Cache $bin already exists");
+                $this->getLogger('momento_cache')->info("Created cache $bin");
             }
-        } else {
-            $this->getLogger('momento_cache_init')->info("Not creating existing cache $bin");
         }
     }
 
