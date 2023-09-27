@@ -45,17 +45,25 @@ class DpctestBackend implements CacheBackendInterface, CacheTagsInvalidatorInter
         $this->getLogger('momento_cache')->debug(
             "GET_MULTIPLE for bin $this->bin, cids: " . implode(', ', $cids)
         );
-        $fetched = [];
 
-        foreach ($cids as $cid) {
-            $getResponse = $this->client->get($this->bin, $cid);
-            if ($getResponse->asHit()) {
-                $fetched[$cid] = unserialize($getResponse->asHit()->valueString());
-                $this->getLogger('momento_cache')->debug("Successful GET for cid $cid");
-            } elseif ($getResponse->asError()) {
-                $this->getLogger('momento_cache')->error("GET error for cid $cid: " . $getResponse->asError()->message());
+        $fetched = [];
+        foreach (array_chunk($cids, 100) as $cidChunk) {
+            $futures = [];
+            foreach ($cidChunk as $cid) {
+                $futures[$cid] = $this->client->getAsync($this->bin, $cid);
+            }
+
+            foreach ($futures as $cid => $future) {
+                $getResponse = $future->wait();
+                if ($getResponse->asHit()) {
+                    $fetched[$cid] = unserialize($getResponse->asHit()->valueString());
+                    $this->getLogger('momento_cache')->debug("Successful GET for cid $cid");
+                } elseif ($getResponse->asError()) {
+                    $this->getLogger('momento_cache')->error("GET error for cid $cid: " . $getResponse->asError()->message());
+                }
             }
         }
+
         return $fetched;
     }
 
