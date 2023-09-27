@@ -20,17 +20,24 @@ class DpctestBackend implements CacheBackendInterface, CacheTagsInvalidatorInter
     protected $client;
     private $MAX_TTL;
 
-    public function __construct($bin, $client) {
+    public function __construct($bin, $client, $createCache) {
         $this->MAX_TTL = intdiv(PHP_INT_MAX, 1000);
         $this->client = $client;
         $this->bin = $bin;
-        $createResponse = $this->client->createCache($bin);
-        if ($createResponse->asError()) {
-            $this->getLogger('momento_cache')->error(
-                "Error creating cache $bin : " . $createResponse->asError()->message()
-            );
-        } elseif ($createResponse->asSuccess()) {
-            $this->getLogger('momento_cache')->info("Created cache: $bin");
+
+        if ($createCache) {
+            $createResponse = $this->client->createCache($bin);
+            if ($createResponse->asError()) {
+                $this->getLogger('momento_cache_init')->error(
+                    "Error creating cache $bin : " . $createResponse->asError()->message()
+                );
+            } elseif ($createResponse->asSuccess()) {
+                $this->getLogger('momento_cache_init')->info("Created cache $bin");
+            } elseif ($createResponse->asAlreadyExists()) {
+                $this->getLogger('momento_cache_init')->info("Cache $bin already exists");
+            }
+        } else {
+            $this->getLogger('momento_cache_init')->info("Not creating existing cache $bin");
         }
     }
 
